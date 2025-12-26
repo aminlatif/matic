@@ -1,0 +1,81 @@
+services:
+  db:
+    image: "${MATIC_PROJECT_NAME}_db:latest"
+    container_name: "${MATIC_PROJECT_NAME}_db"
+    build:
+      context: "./"
+      dockerfile: "./docker/db/Dockerfile"
+      args:
+        - "ENVIRONMENT_MODE=${MATIC_ENVIRONMENT_MODE}"
+        - "TIMEZONE=${MATIC_TIMEZONE}"
+    shm_size: 128mb
+    environment:
+      ENVIRONMENT_MODE: ${MATIC_ENVIRONMENT_MODE}
+      TIMEZONE: ${MATIC_TIMEZONE}
+      TZ: ${MATIC_TIMEZONE}
+      POSTGRES_DB: "${MATIC_DATABASE_NAME}"
+      POSTGRES_USER: "${MATIC_DATABASE_USERNAME}"
+      POSTGRES_PASSWORD: "${MATIC_DATABASE_PASSWORD}"
+    ports:
+      - "${MATIC_PORT_PREFIX}432:5432"
+    volumes:
+      - type: volume
+        source: db_data
+        target: /var/lib/postgresql/data
+        volume:
+          nocopy: true
+      - type: bind
+        source: ./docker/db/export
+        target: /export
+      - type: bind
+        source: ./docker/db/import
+        target: /import
+
+  backend:
+    image: "${MATIC_PROJECT_NAME}_backend:latest"
+    container_name: "${MATIC_PROJECT_NAME}_backend"
+    build:
+      context: "./"
+      dockerfile: "./docker/backend/Dockerfile"
+      args:
+        - "ENVIRONMENT_MODE=${MATIC_ENVIRONMENT_MODE}"
+        - "TIMEZONE=${MATIC_TIMEZONE}"
+        - "USER_ID:${MATIC_USER_ID}"
+        - "GROUP_ID:${MATIC_GROUP_ID}"
+    ports:
+      - "${MATIC_PORT_PREFIX}300:${MATIC_PORT_PREFIX}300"
+    depends_on:
+      - db
+    environment:
+      ENVIRONMENT_MODE: ${MATIC_ENVIRONMENT_MODE}
+      TIMEZONE: ${MATIC_TIMEZONE}
+      TZ: ${MATIC_TIMEZONE}
+      BACKEND_PORT: "${MATIC_PORT_PREFIX}300"
+      DATABASE_URL: "postgres://${MATIC_DATABASE_USERNAME}:${MATIC_DATABASE_PASSWORD}@db:5432/${MATIC_DATABASE_NAME}"
+      DATABASE_SERVER: "db"
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: "${MATIC_DATABASE_NAME}"
+      DATABASE_USER: "${MATIC_DATABASE_USERNAME}"
+      DATABASE_PASSWORD: "${MATIC_DATABASE_PASSWORD}"
+      REDIS_PORT: "6379"
+      PROJECT_NAME: "${MATIC_PROJECT_NAME}"
+      PROJECT_TITLE: "${MATIC_PROJECT_TITLE}"
+      JWT_SECRET: "${MATIC_JWT_SECRET}"
+      SECRET_KEY: "${MATIC_SECRET_KEY}"
+      SMTP_HOST: "${MATIC_SMTP_HOST}"
+      SMTP_PORT: "${MATIC_SMTP_PORT}"
+      SMTP_USERNAME: "${MATIC_SMTP_USERNAME}"
+      SMTP_PASSWORD: "${MATIC_SMTP_PASSWORD}"
+
+
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "3001:3000"
+  #   depends_on:
+  #     - backend
+
+volumes:
+  db_data:
+  # search_data:
+  # messaging_data:

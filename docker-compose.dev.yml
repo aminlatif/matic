@@ -1,0 +1,32 @@
+services:
+  backend:
+    volumes:
+      - type: bind
+        source: ./backend
+        target: /usr/src/matic
+      - type: bind
+        source: ./docker/backend/cargo/registry
+        target: /usr/local/cargo/registry
+
+  db_dashboard:
+    image: "${MATIC_PROJECT_NAME}_db_dashboard:latest"
+    container_name: "${MATIC_PROJECT_NAME}_db_dashboard"
+    build:
+      context: "./"
+      dockerfile: "./docker/db_dashboard/Dockerfile"
+      args:
+        - "ENVIRONMENT_MODE=${MATIC_ENVIRONMENT_MODE}"
+        - "TIMEZONE=${MATIC_TIMEZONE}"
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+      - ADMINER_AUTOLOGIN_DRIVER=pgsql
+      - ADMINER_AUTOLOGIN_USER=${MATIC_DATABASE_USERNAME}
+      - ADMINER_AUTOLOGIN_PASSWORD=${MATIC_DATABASE_PASSWORD}
+      - ADMINER_AUTOLOGIN_DB=${MATIC_DATABASE_NAME}
+      - ADMINER_DESIGN=nette
+      - ADMINER_PLUGINS=tables-filter tinymce auto-login
+    ports:
+      - "${MATIC_PORT_PREFIX}880:8080"
+    depends_on:
+      - db
+
