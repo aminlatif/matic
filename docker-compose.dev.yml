@@ -30,3 +30,8 @@ services:
     depends_on:
       - db
 
+  frontend:
+    volumes:
+      - type: bind
+        source: ./frontend
+        target: /usr/src/matic

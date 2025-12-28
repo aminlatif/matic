@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use axum::{Router, middleware, routing::get};
 use tower::ServiceBuilder;
+use tower_http::cors::CorsLayer;
 
 use crate::{
     handlers::root_handler,
@@ -20,6 +21,10 @@ pub fn get_router(app_state: Arc<AppState>) -> Router {
         .nest("/health", health_routes(&app_state))
         .nest("/user", user_routes(&app_state))
         .with_state(Arc::clone(&app_state))
+        .layer(
+            ServiceBuilder::new()
+                .layer(CorsLayer::permissive())
+        )
         // .layer(
         //     ServiceBuilder::new()
         //         .layer(middleware::from_fn_with_state(
