@@ -24,7 +24,14 @@ useSeoMeta({
     twitterCard: "summary_large_image"
 });
 
-const healthStatus = await useApi()("/health");
+interface HealthStatus {
+    status: "healthy" | "unhealthy"
+    timestamp: string
+    version: string
+    uptime: number
+}
+
+const healthStatus = await useApi<HealthStatus>().get("/health");
 </script>
 
 <template>
@@ -41,21 +48,19 @@ const healthStatus = await useApi()("/health");
             <template #right>
                 <UColorModeButton />
 
-                <UButton to="https://github.com/nuxt-ui-templates/starter" target="_blank" icon="i-simple-icons-github"
+                <UButton to="https://github.com/aminlatif/matic" target="_blank" icon="i-simple-icons-github"
                     aria-label="GitHub" color="neutral" variant="ghost" />
 
-                <div v-if="healthStatus.status === 'healthy'">
-                    healthy
+                <div v-if="healthStatus.status === 'healthy'" class="border rounded border-success py-0.5 px-2 bg-success-50 text-success text-xs">
+                    API OK
                 </div>
-                <div v-else>
-                    unhealthy
+                <div v-else class="border rounded border-error py-0.5 px-2 bg-error-50 text-error text-xs">
+                    API Failed
                 </div>
             </template>
         </UHeader>
 
         <UMain>
-
-
             <NuxtPage />
         </UMain>
 
@@ -69,7 +74,7 @@ const healthStatus = await useApi()("/health");
             </template>
 
             <template #right>
-                <UButton to="https://github.com/nuxt-ui-templates/starter" target="_blank" icon="i-simple-icons-github"
+                <UButton to="https://github.com/aminlatif/matic" target="_blank" icon="i-simple-icons-github"
                     aria-label="GitHub" color="neutral" variant="ghost" />
             </template>
         </UFooter>
